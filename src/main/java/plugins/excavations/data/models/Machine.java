@@ -5,14 +5,13 @@ import plugins.excavations.helpers.DirectionalHelper;
 
 import java.util.UUID;
 
-public class Machine {
+public abstract class Machine {
 
     public enum MachineType {
         DROPPER,
         CONVEYOR,
         UPGRADER,
-        COLLECTOR,
-        SPECIAL
+        COLLECTOR
     }
 
     private final UUID id;
@@ -20,17 +19,18 @@ public class Machine {
     private final MachineType type;
     private final Location anchor;
     private final DirectionalHelper.Direction direction;
-    private final double multiplier;
-    private final boolean disabled;
+    private final double speed;
+    private boolean active;
 
-    public Machine(UUID i, UUID o, MachineType t, Location a, DirectionalHelper.Direction d, double m, boolean di) {
-        this.id = i;
-        this.ownerUUID = o;
-        this.type = t;
-        this.anchor = a;
-        this.direction = d;
-        this.multiplier = m;
-        this.disabled = di;
+    public Machine(UUID id, UUID ownerUUID, MachineType type, Location anchor,
+                   DirectionalHelper.Direction direction, double speed, boolean active) {
+        this.id = id;
+        this.ownerUUID = ownerUUID;
+        this.type = type;
+        this.anchor = anchor;
+        this.direction = direction;
+        this.speed = speed;
+        this.active = active;
     }
 
     public UUID getId() { return id; }
@@ -43,9 +43,12 @@ public class Machine {
 
     public DirectionalHelper.Direction getDirection() { return direction; }
 
-    public double getMultiplier() { return multiplier; }
+    public double getSpeed() { return speed; }
 
-    public boolean isDisabled() { return disabled; }
+    public boolean isActive() { return active; }
 
+    public void setActive(boolean active) { this.active = active; }
 
+    /** Override in subclasses */
+    public abstract void tick();
 }

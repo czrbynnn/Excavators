@@ -2,53 +2,69 @@ package plugins.excavations.data.models;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Item;
 import plugins.excavations.helpers.DirectionalHelper;
 import plugins.excavations.managers.OreManager;
 import plugins.excavations.util.Colorize;
 
+
+import java.util.List;
 import java.util.UUID;
 
-public class Upgrader extends Conveyor {
+public abstract class Upgrader extends Machine {
 
     private final double multiplier;
+    private final double additiveBonus;
 
-    public Upgrader(UUID id, UUID ownerUUID, Location anchor, DirectionalHelper.Direction dir, int speed, double multiplier) {
-        super(id, ownerUUID, anchor, dir, speed);
+    public Upgrader(UUID id, UUID ownerUUID, Location anchor, DirectionalHelper.Direction direction,
+                    double multiplier, double additiveBonus) {
+        super(id, ownerUUID, MachineType.UPGRADER, anchor, direction, 1.0, false);
         this.multiplier = multiplier;
+        this.additiveBonus = additiveBonus;
     }
 
-    @Override
-    public void moveItemsOneBlock() {
-        super.moveItemsOneBlock();
-
-        Location center = getAnchor().clone().add(0.5, 1, 0.5);
-        World world = center.getWorld();
+    /**
+     * Called periodically by UpgraderManager
+     */
+    public void checkForUpgrades() {
+        Location checkLoc = getAnchor().clone().add(0.5, 1.0, 0.5);
+        World world = checkLoc.getWorld();
         if (world == null) return;
 
-        System.out.println("Checking uprader at " + center);
+        List<Item> items = world.getEntitiesByClass(Item.class).stream()
+                .filter(item -> item.getLocation().distanceSquared(checkLoc) <= 0.4)
+                .toList();
 
-        OreManager.getActiveOres().values()
-                        .forEach(ore -> {
-                            System.out.println(ore.getLoc().distance(center));
-                        });
+        if (items.isEmpty()) return;
 
-        OreManager.getActiveOres().values().stream()
-                .filter(ore -> ore.getLoc().getWorld().equals(world))
-                .filter(ore -> ore.getLoc().distanceSquared(center) <= 0.4 * 0.4)
-                .forEach(ore -> {
-                    System.out.println("Ore at " + ore.getLoc() + " distance^2=" + ore.getLoc().distanceSquared(center));
+        for (Item item : items) {
+            OreManager.getActiveOres().values().stream()
+                    .filter(ore -> ore.getItemEntity() != null && ore.getItemEntity().equals(item))
+                    .findFirst()
+                    .ifPresent(this::upgradeOre);
+        }
+    }
 
-                    double oldValue = ore.getValue();
-                    double newValue = oldValue * multiplier;
-                    ore.setValue(newValue);
+    /**
+     * Handles upgrading the ore
+     */
+    protected void upgradeOre(OreItem ore) {
+        double oldValue = ore.getValue();
+        double newValue = (oldValue * multiplier) + additiveBonus;
+        ore.setValue(newValue);
 
-                    if (ore.getHologram() != null && ore.getHologram().isValid()) {
-                        ore.getHologram().setCustomName(Colorize.colorize("&b$" + newValue));
-                    }
-                });
+        if (ore.getHologram() != null && ore.getHologram().isValid()) {
+            ore.getHologram().setCustomName(Colorize.colorize("&e$" + newValue));
+        }
     }
 
     public double getMultiplier() {
         return multiplier;
     }
+
+    public double getAdditiveBonus() {
+        return additiveBonus;
+    }
+
+
 }

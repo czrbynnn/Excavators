@@ -1,59 +1,42 @@
 package plugins.excavations.managers;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import plugins.excavations.data.models.Collector;
+import plugins.excavations.managers.interfaces.MachineManager;
 
 import java.util.*;
 
-public class CollectorManager {
+public class CollectorManager implements MachineManager<Collector> {
 
-    private static final Map<UUID, Collector> activeCollectors = new HashMap<>();
+    private static final Map<UUID, Collector> collectors = new HashMap<>();
 
-    public static void registerCollector(Collector collector) {
-        activeCollectors.put(collector.getId(), collector);
+    @Override
+    public void registerMachine(Collector collector) {
+        collectors.put(collector.getId(), collector);
         collector.startTask();
-        Bukkit.getLogger().info("Registered collector " + collector.getId());
     }
 
-    public static void unregisterCollector(UUID id) {
-        Collector c = activeCollectors.remove(id);
-        if (c != null) c.stopTask();
+    @Override
+    public void unregisterMachine(UUID id) {
+
     }
 
-    public static Collector getCollector(UUID id) {
-        return activeCollectors.get(id);
+    @Override
+    public Collector getMachine(UUID id) {
+        return null;
     }
 
-    public static Collection<Collector> getAllCollectors() {
-        return activeCollectors.values();
+    @Override
+    public Collection<Collector> getAllMachines() {
+        return List.of();
     }
 
-    public static void clearAll() {
-        for (Collector c : activeCollectors.values()) {
-            c.stopTask();
-        }
-        activeCollectors.clear();
+    @Override
+    public void startAll() {
+
     }
 
-    public static void startAll() {
-        Bukkit.getLogger().info("Starting " + activeCollectors.size() + " collectors");
-        for (Collector c : activeCollectors.values()) {
-            c.startTask();
-        }
-    }
+    @Override
+    public void stopAll() {
 
-    public static void stopAll() {
-        for (Collector c : activeCollectors.values()) {
-            c.stopTask();
-        }
     }
-
-    public static List<Collector> getNearbyCollectors(Location loc, double radius) {
-        return activeCollectors.values().stream()
-                .filter(c -> c.getAnchor().getWorld().equals(loc.getWorld()))
-                .filter(c -> c.getAnchor().distanceSquared(loc) <= radius * radius)
-                .toList();
-    }
-
 }

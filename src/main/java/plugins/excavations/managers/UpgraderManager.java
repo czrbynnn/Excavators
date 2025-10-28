@@ -1,36 +1,35 @@
 package plugins.excavations.managers;
 
-
 import org.bukkit.scheduler.BukkitRunnable;
 import plugins.excavations.Excavations;
-import plugins.excavations.data.models.Conveyor;
+import plugins.excavations.data.models.Upgrader;
 import plugins.excavations.managers.interfaces.MachineManager;
 
 import java.util.*;
 
-public class ConveyorManager implements MachineManager<Conveyor> {
+public class UpgraderManager implements MachineManager<Upgrader> {
 
-    private static final Map<UUID, Conveyor> conveyors = new HashMap<>();
+    private static final Map<UUID, Upgrader> upgraders = new HashMap<>();
     private BukkitRunnable task;
 
     @Override
-    public void registerMachine(Conveyor conveyor) {
-        conveyors.put(conveyor.getId(), conveyor);
+    public void registerMachine(Upgrader upgrader) {
+        upgraders.put(upgrader.getId(), upgrader);
     }
 
     @Override
     public void unregisterMachine(UUID id) {
-        conveyors.remove(id);
+        upgraders.remove(id);
     }
 
     @Override
-    public Conveyor getMachine(UUID id) {
-        return conveyors.get(id);
+    public Upgrader getMachine(UUID id) {
+        return upgraders.get(id);
     }
 
     @Override
-    public Collection<Conveyor> getAllMachines() {
-        return conveyors.values();
+    public Collection<Upgrader> getAllMachines() {
+        return upgraders.values();
     }
 
     @Override
@@ -39,11 +38,12 @@ public class ConveyorManager implements MachineManager<Conveyor> {
         task = new BukkitRunnable() {
             @Override
             public void run() {
-                Conveyor.clearMovedCache();
-                conveyors.values().forEach(Conveyor::moveItemsOneBlock);
+                for (Upgrader upgrader : upgraders.values()) {
+                    upgrader.checkForUpgrades();
+                }
             }
         };
-        task.runTaskTimer(Excavations.getInstance(), 1L, 20L);
+        task.runTaskTimer(Excavations.getInstance(), 1L, 10L);
     }
 
     @Override
@@ -53,5 +53,4 @@ public class ConveyorManager implements MachineManager<Conveyor> {
             task = null;
         }
     }
-
 }
