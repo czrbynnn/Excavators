@@ -1,0 +1,12 @@
+name: Excavations
+version: '1.0'
+main: plugins.excavations.Excavations
+api-version: '1.21'
+
+commands:
+  givemachine:
+    description: Give a player a machine item
+    usage: /givemachine <type>
+  balance:
+    aliases: ["bal"]
+    usage: /bal
